@@ -50,6 +50,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 
 import java.lang.reflect.Array;
+import java.text.DateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -107,8 +108,11 @@ public class MainActivity extends AppCompatActivity implements IStepCounter {
         if (fitnessOptions == null)
             fitnessOptions = FitnessOptions.builder()
                     .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_READ)
+                    .addDataType(DataType.TYPE_STEP_COUNT_CUMULATIVE, FitnessOptions.ACCESS_WRITE)
                     .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                    .addDataType(DataType.AGGREGATE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
                     .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_READ)
+                    .addDataType(DataType.TYPE_STEP_COUNT_DELTA, FitnessOptions.ACCESS_WRITE)
                     .build();
         return fitnessOptions;
     }
@@ -131,61 +135,6 @@ public class MainActivity extends AppCompatActivity implements IStepCounter {
     @Override
     public void StartSensor() {
         //googleSignInAccount =_googleSignInAccount;
-        /*final Toast toast = Toast.makeText(this, "Start sensor", Toast.LENGTH_LONG);
-        toast.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL, 0, 0);
-        toast.show();*/
-
-        //FitnessOptions fitnessOptions2 = FitnessOptions.builder().addDataType(DataType.TYPE_STEP_COUNT_DELTA).build();
-
-        /*OnDataPointListener listener = dataPoint -> {
-            for (Field field : dataPoint.getDataType().getFields()) {
-                Value value = dataPoint.getValue(field);
-                Log.i(TAG, "Detected DataPoint field: ${field.getName()}");
-                Log.i(TAG, "Detected DataPoint value: $value");
-                TextView steps = findViewById(R.id.steps);
-                steps.setText( value.toString());
-            }
-        };*/
-
-
-
-
-       /*
-
-        Task<Void> recresponse = Fitness.getRecordingClient(this, googleSignInAccount)
-                .subscribe(DataType.TYPE_STEP_COUNT_DELTA);
-*/
-        /*Task<DataSet> responsehistory =
-                Fitness.getHistoryClient(this, googleSignInAccount)
-                        .readDailyTotalFromLocalDevice(DataType.TYPE_STEP_COUNT_DELTA);
-        final DataSet[] totalSet = {null};
-
-        new Thread(new Runnable() {
-            public void run() {
-
-                try {
-                    totalSet[0] = Tasks.await(responsehistory, 30, TimeUnit.SECONDS);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (TimeoutException e) {
-                    e.printStackTrace();
-                }
-
-                steps.setText(totalSet[0].getDataPoints().toString());
-            }
-        }).start();*/
-
-
-
-        /*if (totalResult.getStatus().isSuccess()) {
-            long total = totalSet.isEmpty()
-                    ? 0
-                    : totalSet.getDataPoints().get(0).getValue(FIELD_STEPS).asInt();
-        } else {
-            // handle failure
-        }*/
 
         DataType dataType = DataType.TYPE_STEP_COUNT_DELTA;
 
@@ -194,6 +143,24 @@ public class MainActivity extends AppCompatActivity implements IStepCounter {
                 .readDailyTotalFromLocalDevice(DataType.TYPE_STEP_COUNT_DELTA)
                 .addOnSuccessListener(dataSource -> {
                     //derived:com.google.step_count.delta:com.google.android.gms:aggregated
+                    DateFormat dateFormat = DateFormat.getDateInstance();
+                    DateFormat timeFormat = DateFormat.getTimeInstance();
+
+                    for (DataPoint dp : dataSource.getDataPoints()) {
+
+                        String type = dp.getDataType().getName();
+                        String tStart = dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS));
+                        String End = dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)) + " " + timeFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS));
+
+                        for (Field field : dp.getDataType().getFields()) {
+                            //Log.e("History", "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+                            String sfield = field.getName();
+                            Value svalue = dp.getValue(field);
+
+                            String ss="";
+                        }
+                    }
+
                     String totalSteps = !dataSource.isEmpty() ?
                             dataSource.getDataPoints().get(0).getValue(Field.FIELD_STEPS).toString() : "0";
                     // historysteps.setText(totalSteps);
@@ -220,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements IStepCounter {
                 .setDataType(DataType.TYPE_STEP_COUNT_DELTA)
                 //.setDataType(DataType.AGGREGATE_STEP_COUNT_DELTA)
                 .setType(DataSource.TYPE_DERIVED)
-                //.setStreamName("live_step_deltas")
+                .setStreamName("estimated_steps")
                 .build();
 
         DataReadRequest readRequest = new DataReadRequest.Builder()
@@ -261,14 +228,13 @@ public class MainActivity extends AppCompatActivity implements IStepCounter {
                 });
 
 
-
         Fitness.getRecordingClient(this, googleSignInAccount)
                 // This example shows subscribing to a DataType, across all possible
                 // data sources. Alternatively, a specific DataSource can be used.
                 .subscribe(DataType.TYPE_STEP_COUNT_DELTA)
                 .addOnSuccessListener(unused ->
                         Log.i(TAG, "Successfully subscribed!"))
-                .addOnFailureListener( e ->
+                .addOnFailureListener(e ->
                         Log.w(TAG, "There was a problem subscribing.", e));
 
 
