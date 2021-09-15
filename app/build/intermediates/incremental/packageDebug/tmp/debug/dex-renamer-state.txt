@@ -1,0 +1,4 @@
+#Wed Sep 15 20:20:16 IST 2021
+base.0=D\:\\Project_2021\\Ionic\\GoogleAPI\\GoogleFitAndroidProject\\PedometerApp-master\\app\\build\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
